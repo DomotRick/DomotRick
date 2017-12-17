@@ -5,7 +5,7 @@
 ############################################# CRONTAB SCRIPT: whataremyips.pl ######################################################
 #################################### DomotRick whataremyips.pl, WILL PUSH INFOS EACH 10 MINTUTES ###################################
 ####################################################################################################################################
-######################################### DEPENDENCIES, CORE SCRIPTS: getpublicip.sh  ##############################################
+######################################### DEPENDENCIES, CORE SCRIPTS: getpublicip.sh, logmaker.pl  #################################
 ####################################################################################################################################
 
 ####################################################### PERL MODULES USED ##########################################################
@@ -16,16 +16,7 @@ use Net::Address::IP::Local;
 #################################################### VARIABLES DECLARATIONS ########################################################
 my $ownname; my $langpref; my $argoption; my $debugmode; my $homefolder; my $domotrickfolder; my $corefolder; my $cronfolder; my $nodefolder;
 my $logfile; my $corelogscript; my $message; my $corelogcmd; my $coredependency; my $coregetippubcmd;
-my $publicip; my $localip;
-
-my $topic;
-my $payload;
-my $mqttclientid;
-
-
-
-my $mqttpub;
-
+my $publicip; my $localip; my $topic; my $payload; my $mqttclientid; my $mqttpub;
 
 ################################ CHECK IF SOME OPTIONS HAS BEEN ADD IN ARGUMENTS ###################
 $argoption = $ARGV[0];
@@ -69,7 +60,7 @@ print "Your public IP is: $publicip\n" if $debugmode == 1; ## ONLY FOR DEBUG ##
 ### IF ERROR LOG AND QUIT ###
 unless ($publicip) {
 	$message = "Error while getting PUBLIC IP address, check de core script dependency";
-	print "$message\n" if $debugmode == 1;
+	print "$message\n" if $debugmode == 1; ## ONLY FOR DEBUG ##
 	system ("$corelogcmd '$message'");	exit;
 }
 
@@ -81,9 +72,16 @@ print "Your local IP is: $localip\n" if $debugmode == 1; ## ONLY FOR DEBUG ##
 ### IF ERROR LOG AND QUIT ###
 unless ($localip) {
 	$message = "Error while getting local IP address, Perl module problem?";
-	print "$message\n" if $debugmode == 1;
+	print "$message\n" if $debugmode == 1; ## ONLY FOR DEBUG ##
 	system ("$corelogcmd '$message'");	exit;
 }
+
+### IF BOTH SUCCESS LOG ###
+$message = "Your local IP is: $localip and your public IP is: $publicip";
+print "$message\n" if $debugmode == 1; ## ONLY FOR DEBUG ##
+system ("$corelogcmd '$message'");
+
+################################## MQTT PUBLISH WITH JSON PAYLOAD ##################################
 
 ### CREATING JSON PAYLOAD ###
 $payload = '{"publicip":"' . $publicip .'","localip":"' . $localip .'"}';
@@ -92,17 +90,4 @@ $payload =~ s/\"/\\\"/ig; #TO ADD ( " ) WHEN PUBLISHED ##
 ### PUBLISH WITH RETAIN ###
 $mqttpub = 'mosquitto_pub -r -i ' . $mqttclientid . ' -t "' . $topic . '" -m "' . $payload . '"';
 system($mqttpub);
-
-=cul
-
-
-#my $mqttpubloc = $homefolder . $domotrickfolder . $corefolder . '/mqttpub.pl ' . $topic . '/local' . ' "' . $locip . '" 0 1';
-
-#system ($mqttpubpub);
-#system ($mqttpubloc);
-
-my $message = "Local $locip and Public $pubip IP successfully updated!";
-my $logcmd = $logcmdpref . '"' . $message . '"';
-system ($logcmd);
-
 
