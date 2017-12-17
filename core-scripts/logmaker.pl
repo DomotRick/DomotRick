@@ -27,7 +27,7 @@ $langpref = 'EN';
 $homefolder = "/home/pi";
 $domotrickfolder = "/DomotRick";
 $corefolder = "/core-scripts";
-$nodefolder = "/node-folder";
+$nodefolder = "/node-infos";
 
 ######################################## VERIFY ARGUMENTS #########################################
 
